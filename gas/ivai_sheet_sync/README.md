@@ -21,6 +21,11 @@ Token:
 - Menú `IVAI > Configurar token API`
 - Se guarda como `IVAI_API_TOKEN` en `PropertiesService`.
 
+Configuración local de `clasp`:
+
+- Usa `gas/ivai_sheet_sync/.clasp.json` para tu `scriptId` real (archivo privado, no se sube a Git).
+- Puedes partir de `gas/ivai_sheet_sync/.clasp.example.json` como plantilla.
+
 ## Estructura de hojas
 
 - `indice` (columna clave: `dept_code`)

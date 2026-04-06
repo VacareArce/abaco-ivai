@@ -73,6 +73,10 @@ function queryAll(selector) {
     return root.querySelectorAll ? root.querySelectorAll(selector) : [];
 }
 
+function isMobileViewport() {
+    return getWin().matchMedia('(max-width: 900px)').matches;
+}
+
 let refreshMobileMapLayouts = null;
 let closeMobileSidebar = null;
 
@@ -89,7 +93,7 @@ function setupMobileMapLayouts() {
         return;
     }
 
-    const isMobileView = () => getWin().matchMedia('(max-width: 900px)').matches;
+    const isMobileView = () => isMobileViewport();
 
     const setActiveSwitchButton = (switchEl, target) => {
         if (!switchEl) return;
@@ -175,16 +179,22 @@ function setupMobileSidebar() {
     const openBtn = getById('mobile-filters-btn');
     const closeBtn = getById('mobile-close-sidebar-btn');
     const backdrop = getById('mobile-sidebar-backdrop');
+    const sidebar = query('#tab-vulnerability .sidebar') || query('.sidebar');
 
     if (!openBtn || !closeBtn || !backdrop) {
         closeMobileSidebar = null;
         return;
     }
 
-    const isMobileView = () => getWin().matchMedia('(max-width: 900px)').matches;
+    const isMobileView = () => isMobileViewport();
 
     const open = () => {
         if (!isMobileView()) return;
+
+        if (sidebar) {
+            sidebar.classList.remove('collapsed');
+        }
+
         getDoc().body.classList.add('mobile-sidebar-open');
     };
 
@@ -630,18 +640,43 @@ export function setupSidebarToggle() {
 
     const icon = toggleBtn.querySelector('i');
 
-    const onToggleSidebarClick = () => {
-        sidebar.classList.toggle('collapsed');
+    const syncToggleAppearance = () => {
         const isCollapsed = sidebar.classList.contains('collapsed');
         if (isCollapsed) {
             icon.classList.remove('fa-chevron-left');
             icon.classList.add('fa-chevron-right');
-            toggleBtn.title = "Expandir menú";
+            toggleBtn.title = 'Expandir menú';
         } else {
             icon.classList.remove('fa-chevron-right');
             icon.classList.add('fa-chevron-left');
-            toggleBtn.title = "Colapsar menú";
+            toggleBtn.title = 'Colapsar menú';
         }
+    };
+
+    let lastMobileState = null;
+    const applyResponsiveSidebarState = () => {
+        const mobile = isMobileViewport();
+        if (mobile !== lastMobileState) {
+            if (mobile) {
+                sidebar.classList.add('collapsed');
+            } else {
+                sidebar.classList.remove('collapsed');
+            }
+            lastMobileState = mobile;
+            syncToggleAppearance();
+            setTimeout(() => {
+                if (state.maps.main) state.maps.main.invalidateSize();
+            }, 220);
+        }
+    };
+
+    applyResponsiveSidebarState();
+    registerGlobalListener(getWin(), 'resize', applyResponsiveSidebarState);
+    registerGlobalListener(getWin(), 'orientationchange', applyResponsiveSidebarState);
+
+    const onToggleSidebarClick = () => {
+        sidebar.classList.toggle('collapsed');
+        syncToggleAppearance();
         // Invalidate map size after transition to prevent grey areas
         setTimeout(() => {
             state.maps.main.invalidateSize();
@@ -655,110 +690,51 @@ export function setupSidebarToggle() {
 export function setupEventListeners() {
     const sidebarContent = query('.sidebar-content');
 
-    // Rastrear si la opción ya estaba seleccionada ANTES del click
-    const onSidebarMouseDown = (e) => {
-        const headerLabel = e.target.closest('.accordion-header label');
-        if (headerLabel) {
-            const radio = headerLabel.querySelector('input[type="radio"]');
-            if (radio && radio.checked) {
-                headerLabel.dataset.wasChecked = 'true';
-            } else if (radio) {
-                headerLabel.dataset.wasChecked = 'false';
-            }
-        }
+    const closeAccordionGroup = (group) => {
+        if (!group) return;
+        group.classList.remove('open');
+        const content = group.querySelector('.accordion-content');
+        if (content) content.style.maxHeight = null;
     };
 
-    const onSidebarChange = (e) => {
-        if (e.target.name === 'indicator') {
-            state.currentIndicator = e.target.value;
-
-            // Si el radio seleccionado pertenece al header de un acordeón (dimensión),
-            // abrir automáticamente ese acordeón y cerrar los demás. Hacerlo antes de las tareas pesadas.
-            const parentGroup = e.target.closest('.accordion-group');
-            if (parentGroup) {
-                // Cerrar todos los demás acordeones
-                queryAll('.accordion-group.open').forEach(openGroup => {
-                    if (openGroup !== parentGroup) {
-                        openGroup.classList.remove('open');
-                        const content = openGroup.querySelector('.accordion-content');
-                        if (content) content.style.maxHeight = null;
-                    }
-                });
-                // Abrir el de la dimensión seleccionada si no está abierto ya
-                if (!parentGroup.classList.contains('open')) {
-                    parentGroup.classList.add('open');
-                    const content = parentGroup.querySelector('.accordion-content');
-                    if (content) {
-                        content.style.maxHeight = content.scrollHeight + 'px';
-                    }
-                }
+    const openAccordionGroup = (group) => {
+        if (!group) return;
+        queryAll('.accordion-group.open').forEach((openGroup) => {
+            if (openGroup !== group) {
+                closeAccordionGroup(openGroup);
             }
-
-            // Tareas pesadas (redibujar mapa) se ejecutan con un mínimo retraso 
-            // para que el navegador alcance a actualizar la vista primero (evitar visual freeze)
-            setTimeout(() => {
-                updateMap('main', e.target.value);
-                updateStoryBox(e.target.value);
-                closeLegendInfoModal();
-            }, 10);
-        }
+        });
+        group.classList.add('open');
+        const content = group.querySelector('.accordion-content');
+        if (content) content.style.maxHeight = content.scrollHeight + 'px';
     };
 
-    registerGlobalListener(sidebarContent, 'mousedown', onSidebarMouseDown);
-    registerGlobalListener(sidebarContent, 'change', onSidebarChange);
+    const applyIndicatorSelection = (indicatorId, closeOnMobile) => {
+        if (!indicatorId) return;
+
+        const indicatorChanged = indicatorId !== state.currentIndicator;
+        if (indicatorChanged) {
+            state.currentIndicator = indicatorId;
+        }
+
+        setTimeout(() => {
+            if (indicatorChanged) {
+                updateMap('main', indicatorId);
+                updateStoryBox(indicatorId);
+            }
+
+            closeLegendInfoModal();
+
+            if (closeOnMobile && isMobileViewport() && typeof closeMobileSidebar === 'function') {
+                closeMobileSidebar();
+            }
+        }, 10);
+    };
 
     const onSidebarClick = (e) => {
-        // 1. Clic directo en el icono de la flechita (chevron)
-        const toggleIcon = e.target.closest('.accordion-toggle-icon');
-        if (toggleIcon) {
-            e.stopPropagation();
-            const group = toggleIcon.closest('.accordion-group');
-            if (group) {
-                const content = group.querySelector('.accordion-content');
-                if (group.classList.contains('open')) {
-                    group.classList.remove('open');
-                    if (content) content.style.maxHeight = null;
-                } else {
-                    queryAll('.accordion-group.open').forEach(openGroup => {
-                        openGroup.classList.remove('open');
-                        const c = openGroup.querySelector('.accordion-content');
-                        if (c) c.style.maxHeight = null;
-                    });
-                    group.classList.add('open');
-                    if (content) content.style.maxHeight = content.scrollHeight + "px";
-                }
-            }
-            return;
-        }
-
-        // 2. Clic en una dimensión (label) que YA ESTABA SELECCIONADA
-        const headerLabel = e.target.closest('.accordion-header label');
-        if (headerLabel && headerLabel.dataset.wasChecked === 'true') {
-            const group = headerLabel.closest('.accordion-group');
-            if (group) {
-                const content = group.querySelector('.accordion-content');
-                if (group.classList.contains('open')) {
-                    // Si estaba abierto, colapsarlo
-                    group.classList.remove('open');
-                    if (content) content.style.maxHeight = null;
-                } else {
-                    // Si estaba cerrado, abrirlo y cerrar los demás
-                    queryAll('.accordion-group.open').forEach(openGroup => {
-                        if (openGroup !== group) {
-                            openGroup.classList.remove('open');
-                            const c = openGroup.querySelector('.accordion-content');
-                            if (c) c.style.maxHeight = null;
-                        }
-                    });
-                    group.classList.add('open');
-                    if (content) content.style.maxHeight = content.scrollHeight + "px";
-                }
-                e.preventDefault(); // Prevenir comportamientos por defecto extraños al hacer clic repetido
-            }
-        }
-
-        if (e.target.classList.contains('dimension-info-btn')) {
-            const indicatorId = e.target.dataset.indicatorId;
+        const infoBtn = e.target.closest('.dimension-info-btn');
+        if (infoBtn) {
+            const indicatorId = infoBtn.dataset.indicatorId;
             if (indicatorId) {
                 const modal = getById('legend-info-modal');
                 const modalBody = getById('legend-info-body');
@@ -771,6 +747,43 @@ export function setupEventListeners() {
                 modalBody.innerHTML = popupContent;
                 modal.style.display = 'block';
             }
+
+            return;
+        }
+
+        const header = e.target.closest('.accordion-header');
+        if (header && sidebarContent && sidebarContent.contains(header)) {
+            const group = header.closest('.accordion-group');
+            const content = group ? group.querySelector('.accordion-content') : null;
+            const headerRadio = header.querySelector('input[type="radio"][name="indicator"]');
+            const wasOpen = !!(group && group.classList.contains('open'));
+
+            if (headerRadio && headerRadio.value !== state.currentIndicator) {
+                headerRadio.checked = true;
+                applyIndicatorSelection(headerRadio.value, false);
+            }
+
+            if (group && content) {
+                if (wasOpen) {
+                    closeAccordionGroup(group);
+                } else {
+                    openAccordionGroup(group);
+                }
+            }
+
+            e.preventDefault();
+            return;
+        }
+
+        const subIndicatorLabel = e.target.closest('.accordion-content label');
+        if (subIndicatorLabel && sidebarContent && sidebarContent.contains(subIndicatorLabel)) {
+            const subRadio = subIndicatorLabel.querySelector('input[type="radio"][name="indicator"]');
+            if (subRadio) {
+                subRadio.checked = true;
+                applyIndicatorSelection(subRadio.value, true);
+            }
+
+            return;
         }
     };
     registerGlobalListener(sidebarContent, 'click', onSidebarClick);
@@ -798,8 +811,6 @@ export function setupEventListeners() {
     makeModalDraggable();
     makeLegendInfoModalDraggable();
     setupMobileMapLayouts();
-    setupMobileSidebar();
-    setupMobileIndicatorInfo();
 }
 
 function closeLegendInfoModal() {

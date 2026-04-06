@@ -242,17 +242,23 @@
     .global-super-header {
         flex-direction: column;
         align-items: stretch;
-        gap: 8px;
+        gap: 6px;
         padding: 8px 10px;
     }
 
     .super-header-title {
-        font-size: 0.8rem;
-        text-align: right;
+        order: 1;
+        width: 100%;
+        font-size: 0.72rem;
+        text-align: left;
         letter-spacing: 0.2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .super-header-selector {
+        order: 2;
         justify-content: space-between;
         gap: 8px;
         flex-wrap: wrap;
@@ -295,11 +301,30 @@
     }
 
     #tab-vulnerability .row-container {
-        flex-direction: column;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 8px;
     }
 
-    .col-sm-4,
-    .col-sm-8 {
+    #tab-vulnerability .col-sm-4 {
+        width: auto;
+        min-width: 0;
+        max-width: none;
+        padding: 0;
+        flex: 0 0 auto;
+    }
+
+    #tab-vulnerability .col-sm-8 {
+        width: auto;
+        min-width: 0;
+        padding: 0;
+        flex: 1 1 auto;
+    }
+
+    #tab-compare .col-sm-4,
+    #tab-compare .col-sm-8,
+    #tab-evolution .col-sm-4,
+    #tab-evolution .col-sm-8 {
         width: 100%;
         padding: 0;
     }
@@ -308,35 +333,15 @@
         min-height: 62vh;
     }
 
-    .mobile-filters-btn {
-        display: inline-flex;
-        margin: 0;
+    .map-container {
+        min-height: 56vh;
     }
 
-    .mobile-info-btn {
-        display: inline-flex;
-        margin: 0;
-    }
-
-    .mobile-action-bar {
-        display: flex;
-        margin: 6px 0 8px;
-    }
-
+    .mobile-filters-btn,
+    .mobile-info-btn,
+    .mobile-action-bar,
     .mobile-sidebar-backdrop {
-        display: block;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.35);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s ease;
-        z-index: 1100;
-    }
-
-    body.mobile-sidebar-open .mobile-sidebar-backdrop {
-        opacity: 1;
-        pointer-events: auto;
+        display: none !important;
     }
 
     .mobile-map-switch {

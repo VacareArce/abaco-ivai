@@ -1,9 +1,15 @@
-# Ignorar datos y configuraciones locales
+# Ignorar datos y configuraciones locales / sensibles
 data/datos_indice.json
 data/datos_nutricionales.json
 data/
 datos/temp/
+
+# Backend (privado por entorno)
 api/config.local.php
+
+# GAS (privado por entorno)
+gas/ivai_sheet_sync/.clasp.json
+
+# Build/deps
 node_modules/
 dist/
-gas/ivai_sheet_sync/.clasp.json

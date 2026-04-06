@@ -42,6 +42,14 @@ body.dark-mode .mobile-close-sidebar-btn {
     color: #e0e0e0;
 }
 
+body.dark-mode .mobile-action-bar {
+    background: #121212;
+}
+
+body.dark-mode #tab-vulnerability .sidebar::before {
+    background: #4e5661;
+}
+
 body.dark-mode .global-super-header {
     background-color: #1e1e1e;
     border-bottom-color: #F58634;
