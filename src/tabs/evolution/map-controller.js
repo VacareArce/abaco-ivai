@@ -74,7 +74,7 @@ export async function updateEvolutionMap(indicatorId, baseYear, compareYear) {
         palette = createColorPalette(allValues, isNutritionMap);
     }
 
-    const createEvolutionLayer = (dataObj, yearStr, otherDataObj, otherYearStr) => {
+    const createEvolutionLayer = (dataObj, yearStr, otherDataObj, otherYearStr, showTrend) => {
         const layersByDept = {};
         const layer = L.geoJSON(state.geoData, {
             style: (feature) => {
@@ -100,15 +100,18 @@ export async function updateEvolutionMap(indicatorId, baseYear, compareYear) {
 
                 layersByDept[deptCode] = layerItem;
                 layerItem.bindTooltip(`${deptName} (${yearStr})`);
-                layerItem.bindPopup(() => createEvolutionPopupContent(deptCode, deptName, indicatorId, dataObj, yearStr, otherDataObj, otherYearStr), { maxWidth: 350 });
+                layerItem.bindPopup(
+                    () => createEvolutionPopupContent(deptCode, deptName, indicatorId, dataObj, yearStr, otherDataObj, otherYearStr, showTrend),
+                    { maxWidth: 350 }
+                );
             }
         });
         layer._deptLayers = layersByDept;
         return layer;
     };
 
-    state.layers.evolutionBase = createEvolutionLayer(baseData, baseYear, compareData, compareYear).addTo(mapBase);
-    state.layers.evolutionCompare = createEvolutionLayer(compareData, compareYear, baseData, baseYear).addTo(mapCompare);
+    state.layers.evolutionBase = createEvolutionLayer(baseData, baseYear, compareData, compareYear, true).addTo(mapBase);
+    state.layers.evolutionCompare = createEvolutionLayer(compareData, compareYear, baseData, baseYear, false).addTo(mapCompare);
 
     const crossOpenPopup = (sourceDeptLayers, targetLayer) => {
         Object.keys(sourceDeptLayers).forEach(deptCode => {

@@ -393,8 +393,19 @@ export function createPopupContent(deptCode, deptName, indicatorId, mapKey) {
     return `<strong>${deptName}</strong><br><b>${displayName}:</b> ${formattedValue}`;
 }
 
-export function createEvolutionPopupContent(deptCode, deptName, indicatorId, dataObj, yearStr, compareDataObj = null, compareYearStr = null) {
+export function createEvolutionPopupContent(
+    deptCode,
+    deptName,
+    indicatorId,
+    dataObj,
+    yearStr,
+    compareDataObj = null,
+    compareYearStr = null,
+    showTrend = true
+) {
     const createTrendHtml = (currentValue, compareValue) => {
+        if (!showTrend) return '';
+
         const compareLabel = compareYearStr || 'el ano comparado';
         if (currentValue === null || currentValue === undefined || isNaN(currentValue)) return '';
         if (compareValue === null || compareValue === undefined || isNaN(compareValue)) return '';
