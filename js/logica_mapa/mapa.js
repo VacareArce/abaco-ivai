@@ -32,19 +32,19 @@ function readTheme(themeStorageKey) {
     }
 }
 
+const CAPA_BASE_CLARA = 'https://tiles.openfreemap.org/styles/positron';
+const CAPA_BASE_OSCURA = 'https://tiles.openfreemap.org/styles/dark';
+
 export function toggleMapTheme(isDark) {
-    const tileUrl = isDark 
-        ? 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png' 
-        : 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png';
-    const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
-    
+    const styleUrl = isDark ? CAPA_BASE_OSCURA : CAPA_BASE_CLARA;
+    const attribution = '&copy; <a href="https://openfreemap.org">OpenFreeMap</a> <a href="https://www.openmaptiles.org/">&copy; OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+
     ['main', 'compareVul', 'compareNut', 'evolutionBase', 'evolutionCompare'].forEach(key => {
         if (state.maps[key]) {
             if (currentTileLayers[key]) {
                 state.maps[key].removeLayer(currentTileLayers[key]);
             }
-            currentTileLayers[key] = L.tileLayer(tileUrl, { attribution }).addTo(state.maps[key]);
-            currentTileLayers[key].bringToBack();
+            currentTileLayers[key] = L.maplibreGL({ style: styleUrl, attribution }).addTo(state.maps[key]);
         }
     });
 }
