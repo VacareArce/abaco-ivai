@@ -1,6 +1,7 @@
 import { state, selectCompareNut } from '../../js/configuracion.js';
 import { getIndicatorDisplayName, getIndicatorValue } from '../../js/logica_mapa/ayudantes.js';
 import { dim_icons, sub_icons } from '../../js/icons.js';
+import { isNutritionIndicatorId } from './nutrition-indicators.js';
 
 function getRoot() {
     return state.domRoot || document;
@@ -424,7 +425,7 @@ export function createEvolutionPopupContent(
         return (value % 1 !== 0) ? value.toFixed(digits) : value;
     };
 
-    const isNutritionIndicator = (indicatorId === 'ENSIN' || indicatorId === 'Cronica' || indicatorId === 'R_Cronica' || indicatorId === 'Aguda' || indicatorId === 'R_Aguda');
+    const isNutritionIndicator = isNutritionIndicatorId(indicatorId);
 
     if (isNutritionIndicator) {
         const value = dataObj.nutritionData[deptCode] ? dataObj.nutritionData[deptCode][indicatorId] : null;

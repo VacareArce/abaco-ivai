@@ -64,9 +64,10 @@ export async function initializeLegacyApp() {
                     if (selectedVul && selectedVul.length > 0) {
                         updateMap('compareVul', selectedVul[0]);
                     }
-                    const compareNutVal = selectCompareNut?.value;
-                    if (compareNutVal) {
-                        updateMap('compareNut', compareNutVal);
+                    // populateControls ya dejo seleccionado un indicador con datos en el año nuevo.
+                    const selectedNut = state.slimSelects?.compareNut?.getSelected();
+                    if (selectedNut && selectedNut.length > 0) {
+                        updateMap('compareNut', selectedNut[0]);
                     }
                 }
             });

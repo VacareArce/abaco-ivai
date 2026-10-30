@@ -10,6 +10,7 @@ import {
     triggerEvolutionUpdate as triggerEvolutionUpdateModule,
     handleEvolutionTabActivated
 } from '../src/tabs/evolution/ui-controller.js';
+import { getAvailableNutritionIndicators } from '../src/shared/nutrition-indicators.js';
 
 function getRoot() {
     return state.domRoot || document;
@@ -387,17 +388,12 @@ export function populateControls() {
     });
     state.slimSelects.compareVul.setData(allSelectData);
 
-    const nutIndicators = [
-        ["ENSIN", "Desnutrición Crónica (ENSIN)"],
-        ["Cronica", "Desnutrición Crónica (ICBF)"],
-        ["R_Cronica", "Riesgo Desnutrición Crónica (ICBF)"],
-        ["Aguda", "Desnutrición Aguda (ICBF)"],
-        ["R_Aguda", "Riesgo Desnutrición Aguda (ICBF)"]
-    ];
-    const nutSelectData = nutIndicators.map(([key, name]) => ({
+    // Solo se ofrecen los indicadores nutricionales con datos en el año activo.
+    const nutSelectData = getAvailableNutritionIndicators(state.nutritionData).map(({ key, name }) => ({
         value: key,
         text: name
     }));
+    const previousNut = state.slimSelects.compareNut?.getSelected?.()?.[0];
 
     if (state.slimSelects.compareNut) {
         state.slimSelects.compareNut.destroy();
@@ -418,6 +414,10 @@ export function populateControls() {
         }
     });
     state.slimSelects.compareNut.setData(nutSelectData);
+    // Conserva la seleccion anterior si sigue disponible; si no, queda el primero de la lista.
+    if (previousNut && nutSelectData.some((option) => option.value === previousNut)) {
+        state.slimSelects.compareNut.setSelected(previousNut, false);
+    }
 
     // Evolucion temporal: solo indice y dimensiones (sin indicadores nutricionales)
     const evolutionAllData = [...allSelectData];

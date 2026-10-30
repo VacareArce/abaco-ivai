@@ -2,6 +2,7 @@ import { state } from '../../core/store.js';
 import { getIndicatorDisplayName, getIndicatorValue } from '../../../js/logica_mapa/ayudantes.js';
 import { loadYearData } from '../../../js/manejo_datos.js';
 import { createColorPalette } from '../../../js/logica_mapa/utilidades_color.js';
+import { isNutritionIndicatorId } from '../../shared/nutrition-indicators.js';
 import {
     createEvolutionPopupContent,
     createContinuousLegendMarkup,
@@ -53,7 +54,7 @@ export async function updateEvolutionMap(indicatorId, baseYear, compareYear) {
 
     if (thisCallId !== evolutionUpdateId) return;
 
-    const isNutritionMap = (indicatorId === 'ENSIN' || indicatorId === 'Cronica' || indicatorId === 'R_Cronica' || indicatorId === 'Aguda' || indicatorId === 'R_Aguda');
+    const isNutritionMap = isNutritionIndicatorId(indicatorId);
     const isIndice = indicatorId === 'Indice';
 
     let palette;
