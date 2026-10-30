@@ -17,6 +17,11 @@ export function isNutritionIndicatorId(indicatorId) {
     return NUTRITION_KEYS.has(indicatorId);
 }
 
+export function getNutritionIndicatorName(indicatorId) {
+    const item = NUTRITION_INDICATORS.find((entry) => entry.key === indicatorId);
+    return item ? item.name : null;
+}
+
 function isNumericValue(value) {
     return value !== null && value !== undefined && value !== '' && !Number.isNaN(Number(value));
 }
