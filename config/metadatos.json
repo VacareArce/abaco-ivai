@@ -1,8 +1,14 @@
 {
-  "defaultYear": 2024,
-  "availableYears": [2024, 2023],
+  "defaultYear": 2025,
+  "availableYears": [2025, 2024, 2023],
   "fuentes": "DANE (GEIH, ECV, IPC, EEVV, Censo), INS–SIVIGILA, ENSIN (2015) & ICBF (2024)",
   "rutas": {
+    "2025": {
+      "indexData": "data/2025/datos_indice.json",
+      "nutritionData": "data/2025/datos_nutricionales.json",
+      "indicatorData": "data/2025/datos_indicadores.json",
+      "weights": "data/2025/002_Pesos_AHP_Hambre.json"
+    },
     "2024": {
       "indexData": "data/2024/datos_indice.json",
       "nutritionData": "data/2024/datos_nutricionales.json",
