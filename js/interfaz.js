@@ -368,6 +368,16 @@ export function populateControls() {
         });
     });
 
+    // Conserva el indice o dimension elegida al cambiar de año; si no habia seleccion, queda el primero.
+    // Se marca 'selected' en los datos de setData() por la misma razon que en el selector nutricional
+    // (afterChange de SlimSelect llega con retraso y con la seleccion que habia en setData).
+    const previousVul = state.slimSelects.compareVul?.getSelected?.()?.[0];
+    const keepPreviousVul = allSelectData.some(({ value }) => value === previousVul);
+    const compareVulSelectData = allSelectData.map((option) => ({
+        ...option,
+        selected: keepPreviousVul && option.value === previousVul
+    }));
+
     if (state.slimSelects.compareVul) {
         state.slimSelects.compareVul.destroy();
     }
@@ -386,7 +396,7 @@ export function populateControls() {
             }
         }
     });
-    state.slimSelects.compareVul.setData(allSelectData);
+    state.slimSelects.compareVul.setData(compareVulSelectData);
 
     // Solo se ofrecen los indicadores nutricionales con datos en el año activo.
     // La seleccion anterior se conserva si sigue disponible; si no, SlimSelect toma el primero.
