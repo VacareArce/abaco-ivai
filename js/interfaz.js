@@ -368,6 +368,16 @@ export function populateControls() {
         });
     });
 
+    // Conserva el indice o dimension elegida al cambiar de año; si no habia seleccion, queda el primero.
+    // Se marca 'selected' en los datos de setData() por la misma razon que en el selector nutricional
+    // (afterChange de SlimSelect llega con retraso y con la seleccion que habia en setData).
+    const previousVul = state.slimSelects.compareVul?.getSelected?.()?.[0];
+    const keepPreviousVul = allSelectData.some(({ value }) => value === previousVul);
+    const compareVulSelectData = allSelectData.map((option) => ({
+        ...option,
+        selected: keepPreviousVul && option.value === previousVul
+    }));
+
     if (state.slimSelects.compareVul) {
         state.slimSelects.compareVul.destroy();
     }
@@ -386,14 +396,21 @@ export function populateControls() {
             }
         }
     });
-    state.slimSelects.compareVul.setData(allSelectData);
+    state.slimSelects.compareVul.setData(compareVulSelectData);
 
     // Solo se ofrecen los indicadores nutricionales con datos en el año activo.
-    const nutSelectData = getAvailableNutritionIndicators(state.nutritionData).map(({ key, name }) => ({
-        value: key,
-        text: name
-    }));
+    // La seleccion anterior se conserva si sigue disponible; si no, SlimSelect toma el primero.
+    // Se marca 'selected' en los datos (y no con setSelected despues) porque SlimSelect dispara
+    // afterChange con 100 ms de retraso y con la seleccion que tenia en setData: si ahi quedaba el
+    // primero, ese evento tardio repintaba el mapa con ENSIN aunque el selector mostrara otro.
     const previousNut = state.slimSelects.compareNut?.getSelected?.()?.[0];
+    const availableNut = getAvailableNutritionIndicators(state.nutritionData);
+    const keepPreviousNut = availableNut.some(({ key }) => key === previousNut);
+    const nutSelectData = availableNut.map(({ key, name }) => ({
+        value: key,
+        text: name,
+        selected: keepPreviousNut && key === previousNut
+    }));
 
     if (state.slimSelects.compareNut) {
         state.slimSelects.compareNut.destroy();
@@ -414,10 +431,6 @@ export function populateControls() {
         }
     });
     state.slimSelects.compareNut.setData(nutSelectData);
-    // Conserva la seleccion anterior si sigue disponible; si no, queda el primero de la lista.
-    if (previousNut && nutSelectData.some((option) => option.value === previousNut)) {
-        state.slimSelects.compareNut.setSelected(previousNut, false);
-    }
 
     // Evolucion temporal: solo indice y dimensiones (sin indicadores nutricionales)
     const evolutionAllData = [...allSelectData];

@@ -2,6 +2,7 @@ import { state } from '../../core/store.js';
 import { getIndicatorDisplayName, getIndicatorValue } from '../../../js/logica_mapa/ayudantes.js';
 import { createColorPalette } from '../../../js/logica_mapa/utilidades_color.js';
 import { createLegend, createPopupContent } from '../../shared/map-components.js';
+import { getNutritionIndicatorName } from '../../shared/nutrition-indicators.js';
 
 export function updateCompareMap(mapKey, indicatorId, compareNutSelectEl) {
     const map = state.maps[mapKey];
@@ -75,8 +76,11 @@ export function updateCompareMap(mapKey, indicatorId, compareNutSelectEl) {
         }
     });
 
+    // El titulo sale del indicador realmente pintado, no del <select>: asi nunca se desincronizan.
     const legendTitle = isNutritionMap
-        ? compareNutSelectEl?.options?.[compareNutSelectEl.selectedIndex]?.text || getIndicatorDisplayName(indicatorId)
+        ? getNutritionIndicatorName(indicatorId)
+            || compareNutSelectEl?.options?.[compareNutSelectEl.selectedIndex]?.text
+            || getIndicatorDisplayName(indicatorId)
         : getIndicatorDisplayName(indicatorId);
 
     const legend = createLegend(map, palette, values, legendTitle, isNutritionMap);
